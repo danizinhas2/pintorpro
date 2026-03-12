@@ -482,7 +482,14 @@ function App() {
                 Toque no botão abaixo para abrir o orçamento no navegador. Lá, toque em <strong>⋮ Menu → Compartilhar → Imprimir → Salvar como PDF</strong>
               </div>
               <button
-                onClick={() => window.open("https://pintorpro.vercel.app", "_system")}
+                onClick={() => {
+                  const url = "https://pintorpro.vercel.app";
+                  // Tenta abrir no Chrome via intent Android
+                  const intentUrl = `intent://${url.replace("https://","")}#Intent;scheme=https;package=com.android.chrome;end`;
+                  const a = document.createElement("a");
+                  a.href = intentUrl;
+                  a.click();
+                }}
                 style={{ background: "#fff", color: "#C84B0F", border: "none", borderRadius: 10, padding: "13px", fontSize: 15, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
               >
                 🌐 Abrir no Navegador para salvar PDF
