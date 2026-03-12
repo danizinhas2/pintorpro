@@ -21,8 +21,10 @@
     ::-webkit-scrollbar { width: 3px; }
     ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
     @media print {
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
       .no-print { display: none !important; }
-      body { background: white; }
+      body { background: white !important; margin: 0 !important; padding: 0 !important; }
+      #orcamento-render { border-radius: 0 !important; border: none !important; box-shadow: none !important; }
     }
   </style>
 </head>
