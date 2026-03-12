@@ -9,6 +9,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Libre+Baskerville:wght@700&display=swap" rel="stylesheet" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -211,6 +213,25 @@ function App() {
     setToast("🆕 Novo orçamento!");
   };
 
+  const salvarPDF = async () => {
+    setToast("⏳ Gerando PDF...");
+    try {
+      const el = document.getElementById("orcamento-print");
+      const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+      const imgData = canvas.toDataURL("image/png");
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      const nomeArquivo = `orcamento-${(cliente || "cliente").replace(/\s+/g, "-").toLowerCase()}.pdf`;
+      pdf.save(nomeArquivo);
+      setToast("✅ PDF salvo!");
+    } catch(e) {
+      setToast("❌ Erro ao gerar PDF");
+    }
+  };
+
   const sugestoesFiltradas = ITENS_SUGERIDOS.filter(s => {
     const matchBusca = s.label.toLowerCase().includes(busca.toLowerCase()) || busca === "";
     const matchCat = filtroCategoria === "todos" || s.categoria === filtroCategoria;
@@ -369,7 +390,7 @@ function App() {
         {/* ===== PREVIEW ===== */}
         {view === "preview" && (
           <div>
-            <div className="print-area" style={{ background: "#fff", borderRadius: 18, overflow: "hidden", boxShadow: "0 4px 40px rgba(44,26,14,0.12)", border: "1px solid #EDE4D6" }}>
+            <div id="orcamento-print" className="print-area" style={{ background: "#fff", borderRadius: 18, overflow: "hidden", boxShadow: "0 4px 40px rgba(44,26,14,0.12)", border: "1px solid #EDE4D6" }}>
               <div style={{ background: "#C84B0F", padding: "24px 28px 20px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 14 }}>
                   <div>
@@ -451,11 +472,8 @@ function App() {
 
             <div className="no-print" style={{ display: "flex", gap: 10, marginTop: 14, flexWrap: "wrap" }}>
               <button onClick={() => setView("form")} style={{ flex: 1, minWidth: 100, padding: "14px", background: "#fff", border: "1.5px solid #E0D4C0", borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: "pointer", color: "#7A5A3A" }}>← Editar</button>
-              <button onClick={() => window.print()} style={{ ...btnPrimary, flex: 2, minWidth: 150, padding: "14px", borderRadius: 12, justifyContent: "center", fontSize: 15 }}>📥 Salvar PDF</button>
+              <button onClick={salvarPDF} style={{ ...btnPrimary, flex: 2, minWidth: 150, padding: "14px", borderRadius: 12, justifyContent: "center", fontSize: 15 }}>📥 Salvar PDF</button>
               <button onClick={novoOrcamento} style={{ flex: 1, minWidth: 100, padding: "14px", background: "#2C1A0E", border: "none", borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: "pointer", color: "#F7C97A" }}>🆕 Novo</button>
-            </div>
-            <div className="no-print" style={{ marginTop: 10, padding: "10px 14px", background: "#FBF6EE", borderRadius: 10, border: "1px solid #E0D4C0", fontSize: 12, color: "#7A5A3A", textAlign: "center" }}>
-              💡 No celular: toque em <strong>Compartilhar → Imprimir → Salvar como PDF</strong>
             </div>
           </div>
         )}
