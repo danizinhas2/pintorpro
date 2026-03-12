@@ -2,532 +2,568 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PintorPRO – Orçamento Profissional</title>
-  <meta name="theme-color" content="#C84B0F" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>PintorPRO</title>
+  <meta name="theme-color" content="#000000" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="PintorPRO" />
   <link rel="manifest" href="manifest.json" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Libre+Baskerville:wght@700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet" />
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #F7F0E6; font-family: 'Sora', sans-serif; }
-    input, textarea { font-family: 'Sora', sans-serif; }
-    input:focus, textarea:focus { outline: none; border-color: #C84B0F !important; }
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-thumb { background: #C8B89A; border-radius: 4px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body { background: #F5F5F5; font-family: 'DM Sans', sans-serif; color: #111; }
+    input, textarea, select { font-family: 'DM Sans', sans-serif; }
+    input:focus, textarea:focus { outline: none; }
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
     @media print {
       .no-print { display: none !important; }
-      body { background: white; margin: 0; }
-      .print-area { box-shadow: none !important; border: none !important; border-radius: 0 !important; }
+      body { background: white; }
     }
   </style>
 </head>
 <body>
-  <div id="root"></div>
-  <script type="text/babel">
+<div id="root"></div>
+<script type="text/babel">
 
-const { useState, useEffect } = React;
+const { useState, useEffect, useRef } = React;
 
-const ITENS_SUGERIDOS = [
-  { label: "Quarto", categoria: "residencial" },
-  { label: "Sala", categoria: "residencial" },
-  { label: "Cozinha", categoria: "residencial" },
-  { label: "Banheiro", categoria: "residencial" },
-  { label: "Área de Serviço", categoria: "residencial" },
-  { label: "Garagem", categoria: "residencial" },
-  { label: "Fachada", categoria: "residencial" },
-  { label: "Portão", categoria: "residencial" },
-  { label: "Muro", categoria: "residencial" },
-  { label: "Corredor", categoria: "residencial" },
-  { label: "Escada", categoria: "residencial" },
-  { label: "Varanda", categoria: "residencial" },
-  { label: "Galpão", categoria: "industrial" },
-  { label: "Piso Industrial", categoria: "industrial" },
-  { label: "Estrutura Metálica", categoria: "industrial" },
-  { label: "Telhado", categoria: "industrial" },
-  { label: "Parede Externa", categoria: "industrial" },
-  { label: "Coluna/Pilar", categoria: "industrial" },
-  { label: "Sinalização de Piso", categoria: "industrial" },
-];
-
-let idSeq = 1;
-function gerarId() { return idSeq++; }
-function fmt(v) {
-  return Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
-
+const PINTOR_KEY = "pintorpro_v3_pintor";
 const PINTOR_VAZIO = { nome: "", cpfCnpj: "", telefone: "", email: "" };
 
-function Checkbox({ checked, onChange, label }) {
-  return (
-    <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", userSelect: "none" }}>
-      <div onClick={() => onChange(!checked)} style={{
-        width: 22, height: 22, borderRadius: 6,
-        border: `2px solid ${checked ? "#C84B0F" : "#C8B89A"}`,
-        background: checked ? "#C84B0F" : "transparent",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        transition: "all 0.15s", flexShrink: 0,
-      }}>
-        {checked && <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-          <polyline points="2,6 5,9 10,3" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>}
-      </div>
-      <span style={{ fontSize: 14, color: "#2C1A0E", fontWeight: 500 }}>{label}</span>
-    </label>
-  );
-}
+const AMBIENTES = [
+  { label: "Quarto", grupo: "Casa" },
+  { label: "Sala", grupo: "Casa" },
+  { label: "Cozinha", grupo: "Casa" },
+  { label: "Banheiro", grupo: "Casa" },
+  { label: "Área de Serviço", grupo: "Casa" },
+  { label: "Garagem", grupo: "Casa" },
+  { label: "Varanda", grupo: "Casa" },
+  { label: "Corredor", grupo: "Casa" },
+  { label: "Escada", grupo: "Casa" },
+  { label: "Fachada", grupo: "Externo" },
+  { label: "Portão", grupo: "Externo" },
+  { label: "Muro", grupo: "Externo" },
+  { label: "Galpão", grupo: "Industrial" },
+  { label: "Piso Industrial", grupo: "Industrial" },
+  { label: "Estrutura Metálica", grupo: "Industrial" },
+  { label: "Telhado", grupo: "Industrial" },
+  { label: "Parede Externa", grupo: "Industrial" },
+];
 
-function Section({ title, icon, children, right }) {
-  return (
-    <div style={{ background: "#fff", borderRadius: 16, border: "1.5px solid #EDE4D6", overflow: "hidden", boxShadow: "0 2px 12px rgba(44,26,14,0.05)" }}>
-      <div style={{ padding: "13px 18px", borderBottom: "1px solid #EDE4D6", background: "#FBF6EE", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span>{icon}</span>
-          <span style={{ fontFamily: "'Libre Baskerville', serif", fontSize: 15, color: "#2C1A0E" }}>{title}</span>
-        </div>
-        {right}
-      </div>
-      <div style={{ padding: 18 }}>{children}</div>
-    </div>
-  );
-}
-
-function Field({ label, children }) {
-  return (
-    <div>
-      <label style={{ display: "block", fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "#9A7A5A", textTransform: "uppercase", marginBottom: 5 }}>{label}</label>
-      {children}
-    </div>
-  );
-}
-
-function PreviewField({ label, value, multiline }) {
-  return (
-    <div>
-      <div style={{ fontSize: 10, fontWeight: 700, color: "#9A7A5A", textTransform: "uppercase", letterSpacing: "0.12em" }}>{label}</div>
-      <div style={{ fontSize: 14, color: "#2C1A0E", marginTop: 4, fontWeight: 500, lineHeight: 1.6, whiteSpace: multiline ? "pre-wrap" : "normal" }}>{value}</div>
-    </div>
-  );
-}
-
-function Badge({ children, cor, opacity }) {
-  return (
-    <span style={{
-      padding: "5px 14px", borderRadius: 100, fontSize: 13, fontWeight: 600,
-      background: opacity ? "#F0F0F0" : cor + "18", color: opacity ? "#aaa" : cor,
-      border: `1.5px solid ${opacity ? "#E0E0E0" : cor + "44"}`,
-    }}>{children}</span>
-  );
-}
-
-function Toast({ msg, onDone }) {
-  useEffect(() => { const t = setTimeout(onDone, 2500); return () => clearTimeout(t); }, []);
-  return (
-    <div style={{
-      position: "fixed", bottom: 28, left: "50%", transform: "translateX(-50%)",
-      background: "#2C1A0E", color: "#F7C97A", padding: "12px 24px", borderRadius: 100,
-      fontSize: 14, fontWeight: 600, zIndex: 9999, boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
-      whiteSpace: "nowrap",
-    }}>{msg}</div>
-  );
-}
-
-const inputStyle = {
-  width: "100%", border: "1.5px solid #E0D4C0", borderRadius: 10,
-  padding: "10px 13px", fontSize: 14, color: "#2C1A0E", background: "#FFFCF7",
+let seq = 1;
+const uid = () => seq++;
+const brl = v => Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const hoje = () => new Date().toLocaleDateString("pt-BR");
+const addDias = (n) => {
+  const d = new Date();
+  d.setDate(d.getDate() + (parseInt(n)||15));
+  return d.toLocaleDateString("pt-BR");
 };
-const btnPrimary = {
-  display: "flex", alignItems: "center", gap: 6,
-  background: "#C84B0F", color: "#fff", border: "none",
-  borderRadius: 10, padding: "10px 18px", fontSize: 14,
-  fontWeight: 700, cursor: "pointer",
-};
-const thStyle = { padding: "10px 14px", fontSize: 11, fontWeight: 700, color: "#7A5A3A", textTransform: "uppercase", letterSpacing: "0.08em", textAlign: "left", borderBottom: "2px solid #E0D4C0" };
-const tdStyle = { padding: "10px 14px", fontSize: 14, color: "#2C1A0E", borderBottom: "1px solid #EDE4D6" };
 
 function App() {
+  // Pintor
   const [pintor, setPintor] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("pintorpro_pintor")) || PINTOR_VAZIO; }
-    catch { return PINTOR_VAZIO; }
+    try { return JSON.parse(localStorage.getItem(PINTOR_KEY)) || PINTOR_VAZIO; } catch { return PINTOR_VAZIO; }
   });
-  const [pintorSalvo, setPintorSalvo] = useState(() => !!localStorage.getItem("pintorpro_pintor"));
-  const [editandoPintor, setEditandoPintor] = useState(() => !localStorage.getItem("pintorpro_pintor"));
-  const [pintorTemp, setPintorTemp] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("pintorpro_pintor")) || PINTOR_VAZIO; }
-    catch { return PINTOR_VAZIO; }
-  });
+  const [pintorSalvo, setPintorSalvo] = useState(() => !!localStorage.getItem(PINTOR_KEY));
+  const [editPintor, setEditPintor] = useState(() => !localStorage.getItem(PINTOR_KEY));
+  const [pintorTemp, setPintorTemp] = useState(pintor);
 
-  const [validadeOrcamento, setValidadeOrcamento] = useState("15");
+  // Orçamento
   const [cliente, setCliente] = useState("");
-  const [local, setLocal] = useState("");
-  const [referente, setReferente] = useState("");
+  const [endereco, setEndereco] = useState("");
+  const [descricao, setDescricao] = useState("");
+  const [validade, setValidade] = useState("15");
   const [inclMaterial, setInclMaterial] = useState(true);
-  const [inclMaoDeObra, setInclMaoDeObra] = useState(true);
+  const [inclMao, setInclMao] = useState(true);
   const [inclNF, setInclNF] = useState(false);
   const [itens, setItens] = useState([]);
   const [busca, setBusca] = useState("");
-  const [mostrarSugestoes, setMostrarSugestoes] = useState(false);
-  const [filtroCategoria, setFiltroCategoria] = useState("todos");
-  const [view, setView] = useState("form");
-  const [toast, setToast] = useState(null);
+  const [showSug, setShowSug] = useState(false);
 
-  const totalGeral = itens.reduce((acc, it) => acc + (parseFloat(it.valor) || 0), 0);
-  const hoje = new Date().toLocaleDateString("pt-BR");
-  const dataValidade = (() => {
-    const d = new Date();
-    d.setDate(d.getDate() + (parseInt(validadeOrcamento) || 15));
-    return d.toLocaleDateString("pt-BR");
-  })();
+  // UI
+  const [tela, setTela] = useState("form"); // form | preview | pintor
+  const [toast, setToast] = useState(null);
+  const [imgUrl, setImgUrl] = useState(null);
+  const [gerando, setGerando] = useState(false);
+
+  const total = itens.reduce((s,i) => s + (parseFloat(i.valor)||0), 0);
+
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2500); };
 
   const salvarPintor = () => {
-    localStorage.setItem("pintorpro_pintor", JSON.stringify(pintorTemp));
-    setPintor(pintorTemp);
-    setPintorSalvo(true);
-    setEditandoPintor(false);
-    setToast("✅ Dados salvos como padrão!");
+    localStorage.setItem(PINTOR_KEY, JSON.stringify(pintorTemp));
+    setPintor(pintorTemp); setPintorSalvo(true); setEditPintor(false);
+    showToast("Dados salvos ✓");
+    if (tela === "pintor") setTela("form");
   };
 
   const limparPintor = () => {
-    if (!confirm("Remover dados salvos do prestador?")) return;
-    localStorage.removeItem("pintorpro_pintor");
-    setPintor(PINTOR_VAZIO);
-    setPintorTemp(PINTOR_VAZIO);
-    setPintorSalvo(false);
-    setEditandoPintor(true);
-    setToast("🗑️ Dados removidos!");
+    if (!confirm("Remover seus dados salvos?")) return;
+    localStorage.removeItem(PINTOR_KEY);
+    setPintor(PINTOR_VAZIO); setPintorTemp(PINTOR_VAZIO);
+    setPintorSalvo(false); setEditPintor(true);
+    showToast("Dados removidos");
   };
 
-  const addItem = (label) => { setItens(prev => [...prev, { id: gerarId(), descricao: label, valor: "" }]); setBusca(""); setMostrarSugestoes(false); };
-  const addCustom = () => { if (busca.trim()) addItem(busca.trim()); };
-  const removeItem = (id) => setItens(prev => prev.filter(i => i.id !== id));
-  const updateItem = (id, field, value) => setItens(prev => prev.map(i => i.id === id ? { ...i, [field]: value } : i));
+  const addItem = (label) => {
+    setItens(p => [...p, { id: uid(), descricao: label, valor: "" }]);
+    setBusca(""); setShowSug(false);
+  };
 
   const novoOrcamento = () => {
-    setCliente(""); setLocal(""); setReferente(""); setItens([]);
-    setValidadeOrcamento("15"); setInclMaterial(true); setInclMaoDeObra(true); setInclNF(false);
-    setView("form");
-    setToast("🆕 Novo orçamento!");
+    setCliente(""); setEndereco(""); setDescricao(""); setItens([]);
+    setValidade("15"); setInclMaterial(true); setInclMao(true); setInclNF(false);
+    setTela("form"); setImgUrl(null);
+    showToast("Novo orçamento ✓");
   };
 
-  const [pdfImageUrl, setPdfImageUrl] = useState(null);
-
-  const salvarPDF = async () => {
-    setToast("⏳ Gerando...");
+  const gerarImagem = async () => {
+    setGerando(true);
+    showToast("Gerando imagem...");
     try {
-      const el = document.getElementById("orcamento-print");
-      const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
-      const imgUrl = canvas.toDataURL("image/jpeg", 0.95);
-      setPdfImageUrl(imgUrl);
-      setToast("✅ Pronto! Segure a imagem para salvar.");
+      const el = document.getElementById("orcamento-render");
+      const canvas = await html2canvas(el, { scale: 2, backgroundColor: "#fff", useCORS: true });
+      setImgUrl(canvas.toDataURL("image/jpeg", 0.97));
+      showToast("Pronto! Segure a imagem para salvar ✓");
     } catch(e) {
-      setToast("❌ Erro: " + e.message);
+      showToast("Erro ao gerar imagem");
     }
+    setGerando(false);
   };
 
-  const abrirNavegaror = () => {
-    window.open("https://pintorpro.vercel.app", "_system");
-  };
+  const sugestoes = AMBIENTES.filter(a =>
+    busca === "" || a.label.toLowerCase().includes(busca.toLowerCase())
+  );
 
-  const sugestoesFiltradas = ITENS_SUGERIDOS.filter(s => {
-    const matchBusca = s.label.toLowerCase().includes(busca.toLowerCase()) || busca === "";
-    const matchCat = filtroCategoria === "todos" || s.categoria === filtroCategoria;
-    return matchBusca && matchCat;
-  });
+  const grupos = [...new Set(sugestoes.map(a => a.grupo))];
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F7F0E6" }}>
-      {toast && <Toast msg={toast} onDone={() => setToast(null)} />}
+    <div style={{ minHeight: "100vh", background: "#F5F5F5" }}>
 
-      <div className="no-print" style={{ background: "#2C1A0E", padding: "14px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", position: "sticky", top: 0, zIndex: 200 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ fontSize: 22 }}>🖌️</span>
-          <div>
-            <div style={{ fontFamily: "'Libre Baskerville', serif", color: "#F7F0E6", fontSize: 17, lineHeight: 1 }}>PintorPRO</div>
-            <div style={{ color: "#9A7A5A", fontSize: 9, letterSpacing: "0.15em", textTransform: "uppercase", marginTop: 2 }}>Orçamento Profissional</div>
+      {/* TOAST */}
+      {toast && (
+        <div style={{
+          position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)",
+          background: "#111", color: "#fff", padding: "12px 22px", borderRadius: 100,
+          fontSize: 14, fontWeight: 500, zIndex: 9999, whiteSpace: "nowrap",
+          boxShadow: "0 4px 24px rgba(0,0,0,0.2)"
+        }}>{toast}</div>
+      )}
+
+      {/* MODAL IMAGEM */}
+      {imgUrl && (
+        <div style={{ position: "fixed", inset: 0, background: "#000", zIndex: 9000, display: "flex", flexDirection: "column" }}>
+          <div style={{ background: "#111", padding: "16px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <div style={{ color: "#fff", fontWeight: 700, fontSize: 16 }}>Orçamento gerado</div>
+              <div style={{ color: "#888", fontSize: 12, marginTop: 2 }}>Segure a imagem → Salvar</div>
+            </div>
+            <button onClick={() => setImgUrl(null)} style={{ background: "#222", border: "none", color: "#fff", width: 36, height: 36, borderRadius: 10, fontSize: 20, cursor: "pointer" }}>×</button>
           </div>
-        </div>
-        <div style={{ display: "flex", gap: 6 }}>
-          {[["form","✏️ Editar"],["preview","📄 Ver"]].map(([v,label]) => (
-            <button key={v} onClick={() => setView(v)} style={{
-              padding: "7px 14px", borderRadius: 100, border: "none", cursor: "pointer",
-              background: view === v ? "#C84B0F" : "rgba(255,255,255,0.08)",
-              color: view === v ? "#fff" : "#9A7A5A", fontSize: 13, fontWeight: 600,
-            }}>{label}</button>
-          ))}
-        </div>
-      </div>
-
-      <div style={{ maxWidth: 700, margin: "0 auto", padding: "24px 14px 80px" }}>
-
-        {view === "form" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-
-            {/* DADOS DO PINTOR */}
-            <Section title="Seus Dados (Prestador)" icon="👷"
-              right={pintorSalvo && !editandoPintor ? (
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button onClick={() => { setPintorTemp(pintor); setEditandoPintor(true); }} style={{ fontSize: 12, fontWeight: 600, color: "#C84B0F", background: "none", border: "1.5px solid #C84B0F", borderRadius: 8, padding: "4px 12px", cursor: "pointer" }}>✏️ Alterar</button>
-                  <button onClick={limparPintor} style={{ fontSize: 12, fontWeight: 600, color: "#999", background: "none", border: "1.5px solid #ddd", borderRadius: 8, padding: "4px 10px", cursor: "pointer" }}>🗑️</button>
-                </div>
-              ) : null}
-            >
-              {pintorSalvo && !editandoPintor ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                    <div><div style={{ fontSize: 10, color: "#9A7A5A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 3 }}>Nome / Empresa</div><div style={{ fontSize: 15, fontWeight: 700, color: "#2C1A0E" }}>{pintor.nome || "—"}</div></div>
-                    <div><div style={{ fontSize: 10, color: "#9A7A5A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 3 }}>CPF / CNPJ</div><div style={{ fontSize: 14, color: "#2C1A0E" }}>{pintor.cpfCnpj || "—"}</div></div>
-                    <div><div style={{ fontSize: 10, color: "#9A7A5A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 3 }}>Telefone</div><div style={{ fontSize: 14, color: "#2C1A0E" }}>{pintor.telefone || "—"}</div></div>
-                    <div><div style={{ fontSize: 10, color: "#9A7A5A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 3 }}>E-mail</div><div style={{ fontSize: 14, color: "#2C1A0E" }}>{pintor.email || "—"}</div></div>
-                  </div>
-                  <div style={{ background: "#F0FAF4", border: "1px solid #B7DFC8", borderRadius: 8, padding: "8px 14px", fontSize: 12, color: "#2D6A4F", fontWeight: 600 }}>
-                    ✅ Dados salvos — serão usados em todos os orçamentos automaticamente
-                  </div>
-                </div>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  <Field label="Nome completo / Empresa">
-                    <input value={pintorTemp.nome} onChange={e => setPintorTemp({...pintorTemp, nome: e.target.value})} placeholder="Ex: Carlos Silva Pinturas" style={inputStyle} />
-                  </Field>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                    <Field label="CPF ou CNPJ">
-                      <input value={pintorTemp.cpfCnpj} onChange={e => setPintorTemp({...pintorTemp, cpfCnpj: e.target.value})} placeholder="000.000.000-00" style={inputStyle} />
-                    </Field>
-                    <Field label="Telefone / WhatsApp">
-                      <input value={pintorTemp.telefone} onChange={e => setPintorTemp({...pintorTemp, telefone: e.target.value})} placeholder="(11) 99999-9999" style={inputStyle} />
-                    </Field>
-                  </div>
-                  <Field label="E-mail">
-                    <input value={pintorTemp.email} onChange={e => setPintorTemp({...pintorTemp, email: e.target.value})} placeholder="seuemail@email.com" style={inputStyle} />
-                  </Field>
-                  <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
-                    <button onClick={salvarPintor} style={{ ...btnPrimary, flex: 1, justifyContent: "center" }}>💾 Salvar como padrão</button>
-                    {pintorSalvo && <button onClick={() => setEditandoPintor(false)} style={{ flex: 1, padding: "10px", background: "transparent", border: "1.5px solid #E0D4C0", borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: "pointer", color: "#7A5A3A" }}>Cancelar</button>}
-                  </div>
-                  <div style={{ fontSize: 12, color: "#9A7A5A", textAlign: "center" }}>💡 Salvo uma vez, não precisará preencher novamente</div>
-                </div>
-              )}
-            </Section>
-
-            {/* DADOS DO ORÇAMENTO */}
-            <Section title="Dados do Orçamento" icon="📋">
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                <Field label="Nome do Cliente"><input value={cliente} onChange={e => setCliente(e.target.value)} placeholder="Ex: João da Silva" style={inputStyle} /></Field>
-                <Field label="Local / Endereço"><input value={local} onChange={e => setLocal(e.target.value)} placeholder="Ex: Rua das Flores, 123 – Jundiaí/SP" style={inputStyle} /></Field>
-                <Field label="Referente a serviço de"><textarea value={referente} onChange={e => setReferente(e.target.value)} placeholder="Descreva o serviço..." rows={3} style={{ ...inputStyle, resize: "vertical", lineHeight: 1.6 }} /></Field>
-                <Field label="Orçamento válido por (dias)"><input type="number" value={validadeOrcamento} onChange={e => setValidadeOrcamento(e.target.value)} placeholder="15" style={{ ...inputStyle, width: 140 }} /></Field>
-              </div>
-            </Section>
-
-            {/* INCLUSÕES */}
-            <Section title="O que está incluso" icon="✅">
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-                <Checkbox checked={inclMaterial} onChange={setInclMaterial} label="Material" />
-                <Checkbox checked={inclMaoDeObra} onChange={setInclMaoDeObra} label="Mão de Obra" />
-                <Checkbox checked={inclNF} onChange={setInclNF} label="Nota Fiscal" />
-              </div>
-            </Section>
-
-            {/* ITENS */}
-            <Section title="Itens do Orçamento" icon="🏠">
-              <div style={{ marginBottom: 14, position: "relative" }}>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <input value={busca} onChange={e => { setBusca(e.target.value); setMostrarSugestoes(true); }} onFocus={() => setMostrarSugestoes(true)} placeholder="Buscar item (Quarto, Galpão...)" style={{ ...inputStyle, flex: 1 }} />
-                  <button onClick={addCustom} style={btnPrimary}>+ Adicionar</button>
-                </div>
-                {mostrarSugestoes && (
-                  <div style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, right: 0, background: "#fff", borderRadius: 12, border: "1.5px solid #E0D4C0", boxShadow: "0 8px 32px rgba(44,26,14,0.15)", zIndex: 100, overflow: "hidden" }}>
-                    <div style={{ display: "flex", borderBottom: "1px solid #EEE4D4", padding: "8px 12px", background: "#FBF6EE" }}>
-                      {["todos","residencial","industrial"].map(c => (
-                        <button key={c} onClick={() => setFiltroCategoria(c)} style={{ padding: "4px 12px", borderRadius: 100, border: "none", background: filtroCategoria === c ? "#C84B0F" : "transparent", color: filtroCategoria === c ? "#fff" : "#7A5A3A", fontSize: 12, fontWeight: 600, cursor: "pointer", textTransform: "capitalize" }}>{c}</button>
-                      ))}
-                      <button onClick={() => setMostrarSugestoes(false)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "#9A7A5A", fontSize: 18 }}>×</button>
-                    </div>
-                    <div style={{ maxHeight: 220, overflowY: "auto" }}>
-                      {sugestoesFiltradas.map(s => (
-                        <button key={s.label} onClick={() => addItem(s.label)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "10px 16px", background: "none", border: "none", borderBottom: "1px solid #F0E8DC", cursor: "pointer", textAlign: "left", fontSize: 14, color: "#2C1A0E" }}>
-                          <span>{s.label}</span>
-                          <span style={{ fontSize: 11, color: "#9A7A5A", background: "#F0E8DC", padding: "2px 8px", borderRadius: 100 }}>{s.categoria}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-              {itens.length === 0 ? (
-                <div style={{ textAlign: "center", padding: "28px 16px", color: "#9A7A5A", fontSize: 14, border: "2px dashed #E0D4C0", borderRadius: 10 }}>Nenhum item ainda. Use o campo acima para adicionar.</div>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {itens.map((item, i) => (
-                    <div key={item.id} style={{ display: "grid", gridTemplateColumns: "1fr auto 36px", gap: 10, alignItems: "center", background: i % 2 === 0 ? "#FFFCF7" : "#FBF6EE", borderRadius: 10, padding: "10px 12px", border: "1px solid #EDE4D6" }}>
-                      <input value={item.descricao} onChange={e => updateItem(item.id, "descricao", e.target.value)} style={{ border: "none", background: "transparent", fontSize: 14, color: "#2C1A0E", fontWeight: 500 }} />
-                      <div style={{ display: "flex", alignItems: "center", gap: 4, border: "1.5px solid #E0D4C0", borderRadius: 8, background: "#fff", padding: "6px 10px", minWidth: 130 }}>
-                        <span style={{ fontSize: 12, color: "#9A7A5A" }}>R$</span>
-                        <input type="number" value={item.valor} onChange={e => updateItem(item.id, "valor", e.target.value)} placeholder="0,00" style={{ border: "none", background: "transparent", fontSize: 14, color: "#2C1A0E", width: 90, textAlign: "right" }} />
-                      </div>
-                      <button onClick={() => removeItem(item.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "#C8B89A", fontSize: 20, width: 36, height: 36 }}>×</button>
-                    </div>
-                  ))}
-                  <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8, padding: "14px 16px", background: "#2C1A0E", borderRadius: 12 }}>
-                    <div style={{ textAlign: "right" }}>
-                      <div style={{ fontSize: 11, color: "#9A7A5A", textTransform: "uppercase", letterSpacing: "0.1em" }}>Total Geral</div>
-                      <div style={{ fontFamily: "'Libre Baskerville', serif", fontSize: 24, color: "#F7C97A", marginTop: 2 }}>{fmt(totalGeral)}</div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </Section>
-
-            <button onClick={() => setView("preview")} style={{ ...btnPrimary, padding: "16px", fontSize: 15, borderRadius: 14, justifyContent: "center" }}>
-              📄 Visualizar Orçamento Final
+          <div style={{ background: "#fff", padding: "10px 16px", display: "flex", gap: 10 }}>
+            <a href={`https://wa.me/?text=Orçamento de pintura`}
+              style={{ flex: 1, background: "#25D366", color: "#fff", borderRadius: 10, padding: "11px", fontSize: 14, fontWeight: 700, textAlign: "center", textDecoration: "none", display: "block" }}>
+              💬 Enviar no WhatsApp
+            </a>
+            <button onClick={() => setImgUrl(null)} style={{ flex: 1, background: "#111", color: "#fff", border: "none", borderRadius: 10, padding: "11px", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+              ← Voltar
             </button>
           </div>
-        )}
+          <div style={{ flex: 1, overflowY: "auto", padding: "16px" }}>
+            <img src={imgUrl} alt="Orçamento" style={{ width: "100%", borderRadius: 8, display: "block" }} />
+            <div style={{ textAlign: "center", marginTop: 12, color: "#666", fontSize: 13 }}>
+              👆 Segure a imagem acima e toque em "Salvar imagem"
+            </div>
+          </div>
+        </div>
+      )}
 
-        {/* ===== PREVIEW ===== */}
-        {view === "preview" && (
-          <div>
-            <div id="orcamento-print" className="print-area" style={{ background: "#fff", borderRadius: 18, overflow: "hidden", boxShadow: "0 4px 40px rgba(44,26,14,0.12)", border: "1px solid #EDE4D6" }}>
-              <div style={{ background: "#C84B0F", padding: "24px 28px 20px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 14 }}>
-                  <div>
-                    <div style={{ fontFamily: "'Libre Baskerville', serif", color: "#fff", fontSize: 22 }}>{pintor.nome || "Orçamento de Pintura"}</div>
-                    {pintor.cpfCnpj && <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 12, marginTop: 4 }}>CPF/CNPJ: {pintor.cpfCnpj}</div>}
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 8 }}>
-                      {pintor.telefone && <div style={{ color: "rgba(255,255,255,0.85)", fontSize: 13 }}>📱 {pintor.telefone}</div>}
-                      {pintor.email && <div style={{ color: "rgba(255,255,255,0.85)", fontSize: 13 }}>✉️ {pintor.email}</div>}
+      {/* HEADER */}
+      <div className="no-print" style={{ background: "#111", padding: "0 20px", display: "flex", justifyContent: "space-between", alignItems: "center", height: 56, position: "sticky", top: 0, zIndex: 100 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontSize: 20 }}>🖌️</span>
+          <span style={{ fontFamily: "'DM Serif Display', serif", color: "#fff", fontSize: 20, letterSpacing: "-0.3px" }}>PintorPRO</span>
+        </div>
+        <button onClick={() => setTela(tela === "pintor" ? "form" : "pintor")} style={{
+          background: tela === "pintor" ? "#fff" : "transparent",
+          color: tela === "pintor" ? "#111" : "#888",
+          border: "1px solid #333", borderRadius: 8,
+          padding: "6px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer"
+        }}>
+          {pintorSalvo ? "👷 Meus dados" : "⚙️ Configurar"}
+        </button>
+      </div>
+
+      <div style={{ maxWidth: 600, margin: "0 auto", padding: "20px 16px 100px" }}>
+
+        {/* ===== TELA: DADOS DO PINTOR ===== */}
+        {tela === "pintor" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div>
+              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: "#111" }}>Seus dados</div>
+              <div style={{ color: "#888", fontSize: 14, marginTop: 4 }}>Salvos uma vez, usados em todos os orçamentos</div>
+            </div>
+
+            {pintorSalvo && !editPintor ? (
+              <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8E8E8", overflow: "hidden" }}>
+                <div style={{ padding: "20px 20px 0" }}>
+                  <div style={{ fontSize: 22, fontWeight: 700, color: "#111", marginBottom: 4 }}>{pintor.nome || "—"}</div>
+                  <div style={{ color: "#666", fontSize: 14, marginBottom: 16 }}>{pintor.cpfCnpj || ""}</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, paddingBottom: 20, borderBottom: "1px solid #F0F0F0" }}>
+                    <div>
+                      <div style={{ fontSize: 11, color: "#999", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 3 }}>Telefone</div>
+                      <div style={{ fontSize: 15, fontWeight: 600 }}>{pintor.telefone || "—"}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 11, color: "#999", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 3 }}>E-mail</div>
+                      <div style={{ fontSize: 14, fontWeight: 500, wordBreak: "break-all" }}>{pintor.email || "—"}</div>
                     </div>
                   </div>
-                  <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 10, padding: "10px 14px", textAlign: "right" }}>
-                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.15em" }}>🖌️ PintorPRO</div>
-                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", marginTop: 8 }}>Emitido em</div>
-                    <div style={{ color: "#fff", fontWeight: 700, fontSize: 13 }}>{hoje}</div>
-                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", marginTop: 6 }}>Válido até</div>
-                    <div style={{ color: "#F7C97A", fontWeight: 700, fontSize: 13 }}>{dataValidade}</div>
-                  </div>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0 }}>
+                  <button onClick={() => { setPintorTemp(pintor); setEditPintor(true); }} style={{ padding: "16px", background: "none", border: "none", borderRight: "1px solid #F0F0F0", fontSize: 14, fontWeight: 600, cursor: "pointer", color: "#111" }}>✏️ Editar</button>
+                  <button onClick={limparPintor} style={{ padding: "16px", background: "none", border: "none", fontSize: 14, fontWeight: 600, cursor: "pointer", color: "#FF3B30" }}>🗑️ Apagar</button>
                 </div>
               </div>
-
-              <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 20 }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
-                  <PreviewField label="Cliente" value={cliente || "—"} />
-                  <PreviewField label="Local" value={local || "—"} />
-                  <div style={{ gridColumn: "1 / -1" }}><PreviewField label="Referente a Serviço de" value={referente || "—"} multiline /></div>
-                </div>
-
-                <div>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: "#9A7A5A", textTransform: "uppercase", letterSpacing: "0.12em" }}>Incluso neste orçamento</div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
-                    {inclMaterial && <Badge cor="#2D6A4F">✓ Material</Badge>}
-                    {inclMaoDeObra && <Badge cor="#1A4480">✓ Mão de Obra</Badge>}
-                    {inclNF && <Badge cor="#7B2D8B">✓ Nota Fiscal</Badge>}
-                    {!inclMaterial && <Badge cor="#999" opacity>Sem Material</Badge>}
-                    {!inclMaoDeObra && <Badge cor="#999" opacity>Sem Mão de Obra</Badge>}
-                    {!inclNF && <Badge cor="#999" opacity>Sem Nota Fiscal</Badge>}
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {[
+                  { label: "Nome ou empresa", key: "nome", placeholder: "Carlos Silva Pinturas" },
+                  { label: "CPF ou CNPJ", key: "cpfCnpj", placeholder: "000.000.000-00" },
+                  { label: "WhatsApp / Telefone", key: "telefone", placeholder: "(11) 99999-9999" },
+                  { label: "E-mail (opcional)", key: "email", placeholder: "seu@email.com" },
+                ].map(f => (
+                  <div key={f.key}>
+                    <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#666", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>{f.label}</label>
+                    <input
+                      value={pintorTemp[f.key]}
+                      onChange={e => setPintorTemp({...pintorTemp, [f.key]: e.target.value})}
+                      placeholder={f.placeholder}
+                      style={{ width: "100%", padding: "14px 16px", borderRadius: 12, border: "1.5px solid #E0E0E0", fontSize: 15, background: "#fff", color: "#111" }}
+                    />
                   </div>
-                </div>
-
-                <div>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: "#9A7A5A", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 10 }}>Itens do Serviço</div>
-                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                    <thead><tr style={{ background: "#F7F0E6" }}>
-                      <th style={thStyle}>Item / Ambiente</th>
-                      <th style={{ ...thStyle, textAlign: "right", width: 140 }}>Valor</th>
-                    </tr></thead>
-                    <tbody>
-                      {itens.length === 0
-                        ? <tr><td colSpan={2} style={{ padding: "20px", textAlign: "center", color: "#9A7A5A" }}>Nenhum item adicionado</td></tr>
-                        : itens.map((item, i) => (
-                          <tr key={item.id} style={{ background: i % 2 === 0 ? "#fff" : "#FBF6EE" }}>
-                            <td style={tdStyle}>{item.descricao || "—"}</td>
-                            <td style={{ ...tdStyle, textAlign: "right", fontWeight: 600 }}>{fmt(item.valor)}</td>
-                          </tr>
-                        ))
-                      }
-                    </tbody>
-                    <tfoot><tr style={{ background: "#2C1A0E" }}>
-                      <td style={{ ...tdStyle, color: "#C8B89A", fontWeight: 700, fontSize: 14 }}>TOTAL GERAL</td>
-                      <td style={{ ...tdStyle, textAlign: "right", color: "#F7C97A", fontWeight: 800, fontSize: 18, fontFamily: "'Libre Baskerville', serif" }}>{fmt(totalGeral)}</td>
-                    </tr></tfoot>
-                  </table>
-                </div>
-
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40, marginTop: 16, paddingTop: 20, borderTop: "1px dashed #E0D4C0" }}>
-                  <div style={{ textAlign: "center" }}>
-                    <div style={{ borderTop: "1.5px solid #2C1A0E", paddingTop: 8, marginTop: 40 }} />
-                    <div style={{ fontSize: 12, color: "#7A5A3A" }}>Contratante</div>
-                    <div style={{ fontSize: 11, color: "#9A7A5A", marginTop: 2 }}>{cliente || ""}</div>
-                  </div>
-                  <div style={{ textAlign: "center" }}>
-                    <div style={{ borderTop: "1.5px solid #2C1A0E", paddingTop: 8, marginTop: 40 }} />
-                    <div style={{ fontSize: 12, color: "#7A5A3A" }}>Prestador de Serviço</div>
-                    <div style={{ fontSize: 11, color: "#9A7A5A", marginTop: 2 }}>{pintor.nome || ""}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="no-print" style={{ display: "flex", gap: 10, marginTop: 14, flexWrap: "wrap" }}>
-              <button onClick={() => setView("form")} style={{ flex: 1, minWidth: 100, padding: "14px", background: "#fff", border: "1.5px solid #E0D4C0", borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: "pointer", color: "#7A5A3A" }}>← Editar</button>
-              <button onClick={salvarPDF} style={{ ...btnPrimary, flex: 2, minWidth: 150, padding: "14px", borderRadius: 12, justifyContent: "center", fontSize: 15 }}>📤 Gerar e Compartilhar</button>
-              <button onClick={novoOrcamento} style={{ flex: 1, minWidth: 100, padding: "14px", background: "#2C1A0E", border: "none", borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: "pointer", color: "#F7C97A" }}>🆕 Novo</button>
-            </div>
-
-            {/* Modal imagem para salvar/compartilhar */}
-            {pdfImageUrl && (
-              <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.95)", zIndex: 9998, display: "flex", flexDirection: "column" }}>
-                {/* Header */}
-                <div style={{ background: "#2C1A0E", padding: "14px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
-                  <div>
-                    <div style={{ color: "#F7C97A", fontWeight: 700, fontSize: 15 }}>📄 Orçamento pronto!</div>
-                    <div style={{ color: "#9A7A5A", fontSize: 11, marginTop: 2 }}>Segure a imagem para salvar ou compartilhe</div>
-                  </div>
-                  <button onClick={() => setPdfImageUrl(null)} style={{ background: "rgba(255,255,255,0.1)", border: "none", color: "#fff", fontSize: 20, cursor: "pointer", borderRadius: 8, width: 36, height: 36 }}>×</button>
-                </div>
-
-                {/* Botões de ação */}
-                <div style={{ display: "flex", gap: 10, padding: "12px 16px", background: "#1A0E06", flexShrink: 0 }}>
-                  <a
-                    href={`https://wa.me/?text=Segue+o+orçamento+de+pintura`}
-                    style={{ flex: 1, background: "#25D366", color: "#fff", border: "none", borderRadius: 10, padding: "12px 8px", fontSize: 13, fontWeight: 700, cursor: "pointer", textAlign: "center", textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
-                  >
-                    💬 WhatsApp
-                  </a>
-                  <a
-                    href={pdfImageUrl}
-                    download={`orcamento-${(cliente || "cliente").replace(/\s+/g, "-").toLowerCase()}.jpg`}
-                    style={{ flex: 1, background: "#C84B0F", color: "#fff", border: "none", borderRadius: 10, padding: "12px 8px", fontSize: 13, fontWeight: 700, cursor: "pointer", textAlign: "center", textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
-                  >
-                    💾 Salvar
-                  </a>
-                </div>
-
-                {/* Dica */}
-                <div style={{ background: "#F7C97A", padding: "8px 16px", textAlign: "center", fontSize: 12, fontWeight: 600, color: "#2C1A0E", flexShrink: 0 }}>
-                  👆 Segure a imagem abaixo → "Salvar imagem" para guardar na galeria
-                </div>
-
-                {/* Imagem */}
-                <div style={{ overflowY: "auto", flex: 1, padding: "12px 16px 32px" }}>
-                  <img
-                    src={pdfImageUrl}
-                    alt="Orçamento"
-                    style={{ width: "100%", borderRadius: 10, display: "block", boxShadow: "0 4px 20px rgba(0,0,0,0.5)" }}
-                  />
+                ))}
+                <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
+                  <button onClick={salvarPintor} style={{ flex: 1, background: "#111", color: "#fff", border: "none", borderRadius: 12, padding: "15px", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>Salvar dados</button>
+                  {pintorSalvo && <button onClick={() => setEditPintor(false)} style={{ flex: 1, background: "#fff", color: "#111", border: "1.5px solid #E0E0E0", borderRadius: 12, padding: "15px", fontSize: 15, fontWeight: 600, cursor: "pointer" }}>Cancelar</button>}
                 </div>
               </div>
             )}
           </div>
         )}
+
+        {/* ===== TELA: FORMULÁRIO ===== */}
+        {tela === "form" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+
+            <div>
+              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: "#111" }}>Novo orçamento</div>
+              <div style={{ color: "#888", fontSize: 14, marginTop: 4 }}>{hoje()}</div>
+            </div>
+
+            {/* CLIENTE */}
+            <Card titulo="Cliente">
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <Campo label="Nome do cliente">
+                  <input value={cliente} onChange={e => setCliente(e.target.value)} placeholder="Ex: João da Silva" style={inp} />
+                </Campo>
+                <Campo label="Endereço / local">
+                  <input value={endereco} onChange={e => setEndereco(e.target.value)} placeholder="Ex: Rua das Flores, 123" style={inp} />
+                </Campo>
+                <Campo label="Descrição do serviço">
+                  <textarea value={descricao} onChange={e => setDescricao(e.target.value)} placeholder="Ex: Pintura completa de apartamento, 2 demãos..." rows={3} style={{ ...inp, resize: "none", lineHeight: 1.6 }} />
+                </Campo>
+                <Campo label="Validade do orçamento (dias)">
+                  <input type="number" value={validade} onChange={e => setValidade(e.target.value)} placeholder="15" style={{ ...inp, width: 120 }} />
+                </Campo>
+              </div>
+            </Card>
+
+            {/* INCLUSO */}
+            <Card titulo="O que está incluso">
+              <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                {[
+                  { label: "Material", val: inclMaterial, set: setInclMaterial },
+                  { label: "Mão de obra", val: inclMao, set: setInclMao },
+                  { label: "Nota fiscal", val: inclNF, set: setInclNF },
+                ].map((item, i, arr) => (
+                  <div key={item.label} onClick={() => item.set(!item.val)} style={{
+                    display: "flex", justifyContent: "space-between", alignItems: "center",
+                    padding: "15px 0", cursor: "pointer",
+                    borderBottom: i < arr.length - 1 ? "1px solid #F0F0F0" : "none"
+                  }}>
+                    <span style={{ fontSize: 15, fontWeight: 500, color: "#111" }}>{item.label}</span>
+                    <div style={{
+                      width: 48, height: 28, borderRadius: 100,
+                      background: item.val ? "#111" : "#E0E0E0",
+                      position: "relative", transition: "background 0.2s"
+                    }}>
+                      <div style={{
+                        position: "absolute", top: 4, left: item.val ? 24 : 4,
+                        width: 20, height: 20, borderRadius: "50%", background: "#fff",
+                        transition: "left 0.2s", boxShadow: "0 1px 4px rgba(0,0,0,0.2)"
+                      }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            {/* ITENS */}
+            <Card titulo={`Itens ${itens.length > 0 ? `(${itens.length})` : ""}`}>
+              <div style={{ position: "relative", marginBottom: itens.length > 0 ? 16 : 0 }}>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <input
+                    value={busca}
+                    onChange={e => { setBusca(e.target.value); setShowSug(true); }}
+                    onFocus={() => setShowSug(true)}
+                    placeholder="Quarto, Sala, Fachada..."
+                    style={{ ...inp, flex: 1 }}
+                  />
+                  <button onClick={() => { if (busca.trim()) addItem(busca.trim()); }} style={{ background: "#111", color: "#fff", border: "none", borderRadius: 12, padding: "0 18px", fontSize: 22, cursor: "pointer", fontWeight: 300, flexShrink: 0 }}>+</button>
+                </div>
+
+                {showSug && (
+                  <div style={{ position: "absolute", top: "calc(100% + 8px)", left: 0, right: 0, background: "#fff", borderRadius: 14, border: "1px solid #E8E8E8", boxShadow: "0 8px 32px rgba(0,0,0,0.12)", zIndex: 50, overflow: "hidden", maxHeight: 260, overflowY: "auto" }}>
+                    <div style={{ display: "flex", justifyContent: "flex-end", padding: "8px 12px 4px" }}>
+                      <button onClick={() => setShowSug(false)} style={{ background: "none", border: "none", color: "#999", fontSize: 20, cursor: "pointer" }}>×</button>
+                    </div>
+                    {grupos.map(grupo => (
+                      <div key={grupo}>
+                        <div style={{ padding: "6px 16px 4px", fontSize: 11, fontWeight: 700, color: "#999", textTransform: "uppercase", letterSpacing: "0.1em" }}>{grupo}</div>
+                        {sugestoes.filter(s => s.grupo === grupo).map(s => (
+                          <button key={s.label} onClick={() => addItem(s.label)} style={{
+                            display: "block", width: "100%", padding: "12px 16px",
+                            background: "none", border: "none", textAlign: "left",
+                            fontSize: 15, color: "#111", cursor: "pointer", fontWeight: 500,
+                            borderTop: "1px solid #F5F5F5"
+                          }}>{s.label}</button>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {itens.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "24px 0", color: "#bbb", fontSize: 14 }}>
+                  Nenhum item adicionado ainda
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                  {itens.map((item, i) => (
+                    <div key={item.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: i < itens.length - 1 ? "1px solid #F5F5F5" : "none" }}>
+                      <input
+                        value={item.descricao}
+                        onChange={e => setItens(p => p.map(it => it.id === item.id ? {...it, descricao: e.target.value} : it))}
+                        style={{ flex: 1, border: "none", background: "transparent", fontSize: 15, fontWeight: 500, color: "#111", padding: "4px 0" }}
+                      />
+                      <div style={{ display: "flex", alignItems: "center", gap: 4, background: "#F5F5F5", borderRadius: 8, padding: "6px 10px" }}>
+                        <span style={{ fontSize: 12, color: "#888" }}>R$</span>
+                        <input
+                          type="number"
+                          value={item.valor}
+                          onChange={e => setItens(p => p.map(it => it.id === item.id ? {...it, valor: e.target.value} : it))}
+                          placeholder="0"
+                          style={{ border: "none", background: "transparent", fontSize: 15, fontWeight: 600, width: 80, textAlign: "right", color: "#111" }}
+                        />
+                      </div>
+                      <button onClick={() => setItens(p => p.filter(it => it.id !== item.id))} style={{ background: "none", border: "none", color: "#CCC", fontSize: 20, cursor: "pointer", padding: "0 4px", lineHeight: 1 }}>×</button>
+                    </div>
+                  ))}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 16, paddingTop: 16, borderTop: "2px solid #111" }}>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: "#888", textTransform: "uppercase", letterSpacing: "0.08em" }}>Total</span>
+                    <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: "#111" }}>{brl(total)}</span>
+                  </div>
+                </div>
+              )}
+            </Card>
+
+            <button onClick={() => setTela("preview")} style={{ background: "#111", color: "#fff", border: "none", borderRadius: 14, padding: "17px", fontSize: 16, fontWeight: 700, cursor: "pointer" }}>
+              Ver orçamento →
+            </button>
+
+          </div>
+        )}
+
+        {/* ===== TELA: PREVIEW ===== */}
+        {tela === "preview" && (
+          <div>
+            {/* Orçamento renderizável */}
+            <div id="orcamento-render" style={{ background: "#fff", borderRadius: 16, overflow: "hidden", border: "1px solid #E8E8E8" }}>
+
+              {/* Cabeçalho */}
+              <div style={{ background: "#111", padding: "24px 24px 20px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
+                  <div>
+                    <div style={{ color: "#888", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: 6 }}>🖌️ PintorPRO</div>
+                    <div style={{ fontFamily: "'DM Serif Display', serif", color: "#fff", fontSize: 22, lineHeight: 1.2 }}>{pintor.nome || "Orçamento de Pintura"}</div>
+                    {pintor.cpfCnpj && <div style={{ color: "#888", fontSize: 12, marginTop: 4 }}>{pintor.cpfCnpj}</div>}
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 14, marginTop: 10 }}>
+                      {pintor.telefone && <span style={{ color: "#aaa", fontSize: 13 }}>📱 {pintor.telefone}</span>}
+                      {pintor.email && <span style={{ color: "#aaa", fontSize: 13 }}>✉️ {pintor.email}</span>}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "right", flexShrink: 0 }}>
+                    <div style={{ fontSize: 10, color: "#666", textTransform: "uppercase", letterSpacing: "0.1em" }}>Emitido</div>
+                    <div style={{ color: "#fff", fontSize: 13, fontWeight: 600, marginTop: 2 }}>{hoje()}</div>
+                    <div style={{ fontSize: 10, color: "#666", textTransform: "uppercase", letterSpacing: "0.1em", marginTop: 8 }}>Válido até</div>
+                    <div style={{ color: "#fff", fontSize: 13, fontWeight: 600, marginTop: 2 }}>{addDias(validade)}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ padding: "24px", display: "flex", flexDirection: "column", gap: 22 }}>
+
+                {/* Dados cliente */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+                  <div>
+                    <div style={{ fontSize: 10, color: "#999", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 4 }}>Cliente</div>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: "#111" }}>{cliente || "—"}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 10, color: "#999", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 4 }}>Local</div>
+                    <div style={{ fontSize: 14, color: "#333" }}>{endereco || "—"}</div>
+                  </div>
+                  {descricao && (
+                    <div style={{ gridColumn: "1 / -1" }}>
+                      <div style={{ fontSize: 10, color: "#999", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 4 }}>Serviço</div>
+                      <div style={{ fontSize: 14, color: "#333", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{descricao}</div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Incluso */}
+                <div>
+                  <div style={{ fontSize: 10, color: "#999", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 8 }}>Incluso</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                    {inclMaterial && <Pill>✓ Material</Pill>}
+                    {inclMao && <Pill>✓ Mão de obra</Pill>}
+                    {inclNF && <Pill>✓ Nota fiscal</Pill>}
+                    {!inclMaterial && <Pill light>Sem material</Pill>}
+                    {!inclMao && <Pill light>Sem mão de obra</Pill>}
+                    {!inclNF && <Pill light>Sem nota fiscal</Pill>}
+                  </div>
+                </div>
+
+                {/* Itens */}
+                <div>
+                  <div style={{ fontSize: 10, color: "#999", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 10 }}>Itens</div>
+                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <thead>
+                      <tr style={{ borderBottom: "2px solid #111" }}>
+                        <th style={{ textAlign: "left", padding: "8px 0", fontSize: 11, fontWeight: 700, color: "#666", textTransform: "uppercase", letterSpacing: "0.08em" }}>Descrição</th>
+                        <th style={{ textAlign: "right", padding: "8px 0", fontSize: 11, fontWeight: 700, color: "#666", textTransform: "uppercase", letterSpacing: "0.08em", width: 120 }}>Valor</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {itens.length === 0
+                        ? <tr><td colSpan={2} style={{ padding: "20px 0", textAlign: "center", color: "#bbb", fontSize: 14 }}>Nenhum item</td></tr>
+                        : itens.map((item, i) => (
+                          <tr key={item.id} style={{ borderBottom: "1px solid #F0F0F0" }}>
+                            <td style={{ padding: "12px 0", fontSize: 14, color: "#111" }}>{item.descricao || "—"}</td>
+                            <td style={{ padding: "12px 0", fontSize: 14, fontWeight: 600, color: "#111", textAlign: "right" }}>{brl(item.valor)}</td>
+                          </tr>
+                        ))
+                      }
+                    </tbody>
+                    <tfoot>
+                      <tr style={{ borderTop: "2px solid #111" }}>
+                        <td style={{ padding: "14px 0", fontSize: 13, fontWeight: 700, color: "#666", textTransform: "uppercase", letterSpacing: "0.08em" }}>Total</td>
+                        <td style={{ padding: "14px 0", textAlign: "right" }}>
+                          <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "#111" }}>{brl(total)}</span>
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+
+                {/* Assinaturas */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, marginTop: 12 }}>
+                  {[{ label: "Contratante", nome: cliente }, { label: "Prestador", nome: pintor.nome }].map(a => (
+                    <div key={a.label} style={{ textAlign: "center" }}>
+                      <div style={{ borderTop: "1.5px solid #111", paddingTop: 8, marginTop: 40 }} />
+                      <div style={{ fontSize: 12, color: "#666" }}>{a.label}</div>
+                      <div style={{ fontSize: 11, color: "#999", marginTop: 2 }}>{a.nome || ""}</div>
+                    </div>
+                  ))}
+                </div>
+
+              </div>
+            </div>
+
+            {/* Botões */}
+            <div className="no-print" style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 16 }}>
+              <button
+                onClick={() => window.print()}
+                style={{ background: "#111", color: "#fff", border: "none", borderRadius: 14, padding: "17px", fontSize: 16, fontWeight: 700, cursor: "pointer" }}
+              >
+                📄 Salvar como PDF
+              </button>
+              <button
+                onClick={gerarImagem}
+                disabled={gerando}
+                style={{ background: "#fff", color: "#111", border: "1.5px solid #E0E0E0", borderRadius: 14, padding: "15px", fontSize: 15, fontWeight: 600, cursor: "pointer", opacity: gerando ? 0.6 : 1 }}
+              >
+                {gerando ? "Gerando..." : "📤 Gerar imagem (WhatsApp)"}
+              </button>
+              <div style={{ display: "flex", gap: 10 }}>
+                <button onClick={() => setTela("form")} style={{ flex: 1, background: "#fff", color: "#111", border: "1.5px solid #E0E0E0", borderRadius: 12, padding: "14px", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>← Editar</button>
+                <button onClick={novoOrcamento} style={{ flex: 1, background: "#F5F5F5", color: "#111", border: "none", borderRadius: 12, padding: "14px", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>🆕 Novo</button>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
 }
 
+// Componentes auxiliares
+const inp = {
+  width: "100%", padding: "13px 15px", borderRadius: 12,
+  border: "1.5px solid #E8E8E8", fontSize: 15, background: "#fff", color: "#111"
+};
+
+function Card({ titulo, children }) {
+  return (
+    <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8E8E8", overflow: "hidden" }}>
+      <div style={{ padding: "14px 18px", borderBottom: "1px solid #F0F0F0" }}>
+        <span style={{ fontSize: 13, fontWeight: 700, color: "#111", textTransform: "uppercase", letterSpacing: "0.08em" }}>{titulo}</span>
+      </div>
+      <div style={{ padding: "18px" }}>{children}</div>
+    </div>
+  );
+}
+
+function Campo({ label, children }) {
+  return (
+    <div>
+      <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#888", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</label>
+      {children}
+    </div>
+  );
+}
+
+function Pill({ children, light }) {
+  return (
+    <span style={{
+      padding: "5px 12px", borderRadius: 100, fontSize: 13, fontWeight: 600,
+      background: light ? "#F5F5F5" : "#111",
+      color: light ? "#bbb" : "#fff",
+      border: light ? "1px solid #E8E8E8" : "none"
+    }}>{children}</span>
+  );
+}
+
 ReactDOM.createRoot(document.getElementById('root')).render(<App />);
-  </script>
+</script>
 </body>
 </html>
