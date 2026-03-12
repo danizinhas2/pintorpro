@@ -472,42 +472,51 @@ function App() {
 
             <div className="no-print" style={{ display: "flex", gap: 10, marginTop: 14, flexWrap: "wrap" }}>
               <button onClick={() => setView("form")} style={{ flex: 1, minWidth: 100, padding: "14px", background: "#fff", border: "1.5px solid #E0D4C0", borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: "pointer", color: "#7A5A3A" }}>← Editar</button>
+              <button onClick={salvarPDF} style={{ ...btnPrimary, flex: 2, minWidth: 150, padding: "14px", borderRadius: 12, justifyContent: "center", fontSize: 15 }}>📤 Gerar e Compartilhar</button>
               <button onClick={novoOrcamento} style={{ flex: 1, minWidth: 100, padding: "14px", background: "#2C1A0E", border: "none", borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: "pointer", color: "#F7C97A" }}>🆕 Novo</button>
             </div>
 
-            {/* Botão salvar PDF em destaque */}
-            <div className="no-print" style={{ marginTop: 10, background: "#C84B0F", borderRadius: 14, padding: 18, display: "flex", flexDirection: "column", gap: 10 }}>
-              <div style={{ color: "#fff", fontWeight: 700, fontSize: 15 }}>📥 Salvar como PDF</div>
-              <div style={{ color: "rgba(255,255,255,0.8)", fontSize: 12, lineHeight: 1.5 }}>
-                Toque no botão abaixo para abrir o orçamento no navegador. Lá, toque em <strong>⋮ Menu → Compartilhar → Imprimir → Salvar como PDF</strong>
-              </div>
-              <button
-                onClick={() => {
-                  const url = "https://pintorpro.vercel.app";
-                  // Tenta abrir no Chrome via intent Android
-                  const intentUrl = `intent://${url.replace("https://","")}#Intent;scheme=https;package=com.android.chrome;end`;
-                  const a = document.createElement("a");
-                  a.href = intentUrl;
-                  a.click();
-                }}
-                style={{ background: "#fff", color: "#C84B0F", border: "none", borderRadius: 10, padding: "13px", fontSize: 15, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
-              >
-                🌐 Abrir no Navegador para salvar PDF
-              </button>
-            </div>
-
-            {/* Modal imagem para salvar no Android */}
+            {/* Modal imagem para salvar/compartilhar */}
             {pdfImageUrl && (
-              <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.92)", zIndex: 9998, display: "flex", flexDirection: "column", alignItems: "center" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", padding: "16px 20px", background: "#2C1A0E" }}>
-                  <span style={{ color: "#F7C97A", fontWeight: 700, fontSize: 15 }}>📄 Orçamento gerado</span>
-                  <button onClick={() => setPdfImageUrl(null)} style={{ background: "none", border: "none", color: "#fff", fontSize: 24, cursor: "pointer" }}>×</button>
+              <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.95)", zIndex: 9998, display: "flex", flexDirection: "column" }}>
+                {/* Header */}
+                <div style={{ background: "#2C1A0E", padding: "14px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
+                  <div>
+                    <div style={{ color: "#F7C97A", fontWeight: 700, fontSize: 15 }}>📄 Orçamento pronto!</div>
+                    <div style={{ color: "#9A7A5A", fontSize: 11, marginTop: 2 }}>Segure a imagem para salvar ou compartilhe</div>
+                  </div>
+                  <button onClick={() => setPdfImageUrl(null)} style={{ background: "rgba(255,255,255,0.1)", border: "none", color: "#fff", fontSize: 20, cursor: "pointer", borderRadius: 8, width: 36, height: 36 }}>×</button>
                 </div>
-                <div style={{ background: "#F7C97A", margin: "12px 16px", borderRadius: 10, padding: "10px 16px", textAlign: "center", fontSize: 13, fontWeight: 600, color: "#2C1A0E" }}>
-                  👆 Segure a imagem abaixo → "Salvar imagem"
+
+                {/* Botões de ação */}
+                <div style={{ display: "flex", gap: 10, padding: "12px 16px", background: "#1A0E06", flexShrink: 0 }}>
+                  <a
+                    href={`https://wa.me/?text=Segue+o+orçamento+de+pintura`}
+                    style={{ flex: 1, background: "#25D366", color: "#fff", border: "none", borderRadius: 10, padding: "12px 8px", fontSize: 13, fontWeight: 700, cursor: "pointer", textAlign: "center", textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                  >
+                    💬 WhatsApp
+                  </a>
+                  <a
+                    href={pdfImageUrl}
+                    download={`orcamento-${(cliente || "cliente").replace(/\s+/g, "-").toLowerCase()}.jpg`}
+                    style={{ flex: 1, background: "#C84B0F", color: "#fff", border: "none", borderRadius: 10, padding: "12px 8px", fontSize: 13, fontWeight: 700, cursor: "pointer", textAlign: "center", textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                  >
+                    💾 Salvar
+                  </a>
                 </div>
-                <div style={{ overflowY: "auto", width: "100%", padding: "0 16px 24px", flex: 1 }}>
-                  <img src={pdfImageUrl} alt="Orçamento" style={{ width: "100%", borderRadius: 8, display: "block" }} />
+
+                {/* Dica */}
+                <div style={{ background: "#F7C97A", padding: "8px 16px", textAlign: "center", fontSize: 12, fontWeight: 600, color: "#2C1A0E", flexShrink: 0 }}>
+                  👆 Segure a imagem abaixo → "Salvar imagem" para guardar na galeria
+                </div>
+
+                {/* Imagem */}
+                <div style={{ overflowY: "auto", flex: 1, padding: "12px 16px 32px" }}>
+                  <img
+                    src={pdfImageUrl}
+                    alt="Orçamento"
+                    style={{ width: "100%", borderRadius: 10, display: "block", boxShadow: "0 4px 20px rgba(0,0,0,0.5)" }}
+                  />
                 </div>
               </div>
             )}
