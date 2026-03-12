@@ -224,22 +224,27 @@ function App() {
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      const nomeArquivo = `orcamento-${(cliente || "cliente").replace(/\s+/g, "-").toLowerCase()}.pdf`;
 
-      // Gera blob com tipo correto para Android
-      const pdfBlob = pdf.output("blob");
-      const blobUrl = URL.createObjectURL(new Blob([pdfBlob], { type: "application/pdf" }));
-      const link = document.createElement("a");
-      link.href = blobUrl;
-      link.download = nomeArquivo;
-      link.type = "application/pdf";
-      document.body.appendChild(link);
-      link.click();
-      setTimeout(() => { document.body.removeChild(link); URL.revokeObjectURL(blobUrl); }, 1000);
-
-      setToast("✅ PDF salvo!");
+      // Abre o PDF como base64 numa nova aba — funciona no Android WebView
+      const pdfBase64 = pdf.output("datauristring");
+      const novAba = window.open();
+      if (novAba) {
+        novAba.document.write(
+          `<html><head><title>Orçamento</title></head><body style="margin:0">
+          <iframe src="${pdfBase64}" width="100%" height="100%" style="border:none;position:fixed;top:0;left:0;width:100%;height:100%"></iframe>
+          </body></html>`
+        );
+        setToast("✅ PDF aberto — salve pelo navegador!");
+      } else {
+        // Fallback: força download direto
+        const link = document.createElement("a");
+        link.href = pdfBase64;
+        link.download = `orcamento-${(cliente || "cliente").replace(/\s+/g, "-").toLowerCase()}.pdf`;
+        link.click();
+        setToast("✅ PDF salvo!");
+      }
     } catch(e) {
-      setToast("❌ Erro ao gerar PDF");
+      setToast("❌ Erro: " + e.message);
     }
   };
 
