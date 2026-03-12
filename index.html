@@ -397,104 +397,123 @@ function App() {
         {/* ===== TELA: PREVIEW ===== */}
         {tela === "preview" && (
           <div>
-            {/* Orçamento renderizável */}
-            <div id="orcamento-render" style={{ background: "#fff", borderRadius: 16, overflow: "hidden", border: "1px solid #E8E8E8" }}>
+            {/* Orçamento renderizável — estilo documento formal */}
+            <div id="orcamento-render" style={{ background: "#fff", fontFamily: "'DM Sans', sans-serif", border: "1px solid #ddd" }}>
 
-              {/* Cabeçalho */}
-              <div style={{ background: "#111", padding: "24px 24px 20px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
+              {/* Cabeçalho azul com onda */}
+              <div style={{ background: "linear-gradient(135deg, #1a3a5c 0%, #2d6a9f 60%, #4a9fd4 100%)", padding: "22px 24px 18px", position: "relative", overflow: "hidden" }}>
+                {/* Onda decorativa */}
+                <div style={{ position: "absolute", bottom: -1, left: 0, right: 0, height: 24, background: "#fff", borderRadius: "60% 60% 0 0 / 100% 100% 0 0" }} />
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", position: "relative" }}>
                   <div>
-                    <div style={{ color: "#888", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: 6 }}>🖌️ PintorPRO</div>
-                    <div style={{ fontFamily: "'DM Serif Display', serif", color: "#fff", fontSize: 22, lineHeight: 1.2 }}>{pintor.nome || "Orçamento de Pintura"}</div>
-                    {pintor.cpfCnpj && <div style={{ color: "#888", fontSize: 12, marginTop: 4 }}>{pintor.cpfCnpj}</div>}
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 14, marginTop: 10 }}>
-                      {pintor.telefone && <span style={{ color: "#aaa", fontSize: 13 }}>📱 {pintor.telefone}</span>}
-                      {pintor.email && <span style={{ color: "#aaa", fontSize: 13 }}>✉️ {pintor.email}</span>}
+                    <div style={{ fontFamily: "'DM Serif Display', serif", color: "#fff", fontSize: 26, letterSpacing: "0.05em", marginBottom: 4 }}>ORÇAMENTO</div>
+                    <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 12 }}>{pintor.nome || ""}</div>
+                    {pintor.cpfCnpj && <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 11, marginTop: 2 }}>{pintor.cpfCnpj}</div>}
+                    <div style={{ display: "flex", gap: 14, marginTop: 6, flexWrap: "wrap" }}>
+                      {pintor.telefone && <span style={{ color: "rgba(255,255,255,0.75)", fontSize: 11 }}>{pintor.telefone}</span>}
+                      {pintor.email && <span style={{ color: "rgba(255,255,255,0.75)", fontSize: 11 }}>{pintor.email}</span>}
                     </div>
                   </div>
-                  <div style={{ textAlign: "right", flexShrink: 0 }}>
-                    <div style={{ fontSize: 10, color: "#666", textTransform: "uppercase", letterSpacing: "0.1em" }}>Emitido</div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.1em" }}>Data</div>
                     <div style={{ color: "#fff", fontSize: 13, fontWeight: 600, marginTop: 2 }}>{hoje()}</div>
-                    <div style={{ fontSize: 10, color: "#666", textTransform: "uppercase", letterSpacing: "0.1em", marginTop: 8 }}>Válido até</div>
+                    <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.1em", marginTop: 8 }}>Válido até</div>
                     <div style={{ color: "#fff", fontSize: 13, fontWeight: 600, marginTop: 2 }}>{addDias(validade)}</div>
                   </div>
                 </div>
               </div>
 
-              <div style={{ padding: "24px", display: "flex", flexDirection: "column", gap: 22 }}>
+              <div style={{ padding: "20px 24px 28px" }}>
 
-                {/* Dados cliente */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
-                  <div>
-                    <div style={{ fontSize: 10, color: "#999", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 4 }}>Cliente</div>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: "#111" }}>{cliente || "—"}</div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 10, color: "#999", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 4 }}>Local</div>
-                    <div style={{ fontSize: 14, color: "#333" }}>{endereco || "—"}</div>
-                  </div>
-                  {descricao && (
-                    <div style={{ gridColumn: "1 / -1" }}>
-                      <div style={{ fontSize: 10, color: "#999", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 4 }}>Serviço</div>
-                      <div style={{ fontSize: 14, color: "#333", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{descricao}</div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Incluso */}
-                <div>
-                  <div style={{ fontSize: 10, color: "#999", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 8 }}>Incluso</div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                    {inclMaterial && <Pill>✓ Material</Pill>}
-                    {inclMao && <Pill>✓ Mão de obra</Pill>}
-                    {inclNF && <Pill>✓ Nota fiscal</Pill>}
-                    {!inclMaterial && <Pill light>Sem material</Pill>}
-                    {!inclMao && <Pill light>Sem mão de obra</Pill>}
-                    {!inclNF && <Pill light>Sem nota fiscal</Pill>}
-                  </div>
-                </div>
-
-                {/* Itens */}
-                <div>
-                  <div style={{ fontSize: 10, color: "#999", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 10 }}>Itens</div>
-                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                    <thead>
-                      <tr style={{ borderBottom: "2px solid #111" }}>
-                        <th style={{ textAlign: "left", padding: "8px 0", fontSize: 11, fontWeight: 700, color: "#666", textTransform: "uppercase", letterSpacing: "0.08em" }}>Descrição</th>
-                        <th style={{ textAlign: "right", padding: "8px 0", fontSize: 11, fontWeight: 700, color: "#666", textTransform: "uppercase", letterSpacing: "0.08em", width: 120 }}>Valor</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {itens.length === 0
-                        ? <tr><td colSpan={2} style={{ padding: "20px 0", textAlign: "center", color: "#bbb", fontSize: 14 }}>Nenhum item</td></tr>
-                        : itens.map((item, i) => (
-                          <tr key={item.id} style={{ borderBottom: "1px solid #F0F0F0" }}>
-                            <td style={{ padding: "12px 0", fontSize: 14, color: "#111" }}>{item.descricao || "—"}</td>
-                            <td style={{ padding: "12px 0", fontSize: 14, fontWeight: 600, color: "#111", textAlign: "right" }}>{brl(item.valor)}</td>
-                          </tr>
-                        ))
-                      }
-                    </tbody>
-                    <tfoot>
-                      <tr style={{ borderTop: "2px solid #111" }}>
-                        <td style={{ padding: "14px 0", fontSize: 13, fontWeight: 700, color: "#666", textTransform: "uppercase", letterSpacing: "0.08em" }}>Total</td>
-                        <td style={{ padding: "14px 0", textAlign: "right" }}>
-                          <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "#111" }}>{brl(total)}</span>
-                        </td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
-
-                {/* Assinaturas */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, marginTop: 12 }}>
-                  {[{ label: "Contratante", nome: cliente }, { label: "Prestador", nome: pintor.nome }].map(a => (
-                    <div key={a.label} style={{ textAlign: "center" }}>
-                      <div style={{ borderTop: "1.5px solid #111", paddingTop: 8, marginTop: 40 }} />
-                      <div style={{ fontSize: 12, color: "#666" }}>{a.label}</div>
-                      <div style={{ fontSize: 11, color: "#999", marginTop: 2 }}>{a.nome || ""}</div>
+                {/* Dados do cliente — estilo campos de formulário */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0, marginBottom: 20, border: "1px solid #ddd" }}>
+                  {[
+                    { label: "Cliente", value: cliente },
+                    { label: "Data", value: hoje() },
+                    { label: "Endereço", value: endereco },
+                    { label: "Validade", value: addDias(validade) },
+                    { label: "Referente a", value: descricao, full: true },
+                  ].map((f, i) => (
+                    <div key={f.label} style={{
+                      gridColumn: f.full ? "1 / -1" : "auto",
+                      borderBottom: "1px solid #ddd",
+                      borderRight: (!f.full && i % 2 === 0) ? "1px solid #ddd" : "none",
+                      padding: "8px 12px",
+                      minHeight: f.full ? 44 : 38,
+                    }}>
+                      <div style={{ fontSize: 9, fontWeight: 700, color: "#1a3a5c", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 3 }}>{f.label}</div>
+                      <div style={{ fontSize: 13, color: "#111", fontWeight: 500 }}>{f.value || ""}</div>
                     </div>
                   ))}
+                  {/* Incluso */}
+                  <div style={{ gridColumn: "1 / -1", padding: "8px 12px", minHeight: 38 }}>
+                    <div style={{ fontSize: 9, fontWeight: 700, color: "#1a3a5c", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 5 }}>Incluso neste orçamento</div>
+                    <div style={{ display: "flex", gap: 16 }}>
+                      {[["Material", inclMaterial], ["Mão de obra", inclMao], ["Nota fiscal", inclNF]].map(([l, v]) => (
+                        <div key={l} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: v ? "#1a3a5c" : "#bbb" }}>
+                          <div style={{ width: 14, height: 14, border: `1.5px solid ${v ? "#1a3a5c" : "#ccc"}`, borderRadius: 3, background: v ? "#1a3a5c" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                            {v && <span style={{ color: "#fff", fontSize: 9, fontWeight: 700 }}>✓</span>}
+                          </div>
+                          <span style={{ fontWeight: v ? 600 : 400 }}>{l}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tabela de itens */}
+                <table style={{ width: "100%", borderCollapse: "collapse", border: "1px solid #ddd" }}>
+                  <thead>
+                    <tr style={{ background: "linear-gradient(135deg, #1a3a5c, #2d6a9f)" }}>
+                      <th style={{ padding: "10px 12px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "#fff", textTransform: "uppercase", letterSpacing: "0.1em", borderRight: "1px solid rgba(255,255,255,0.2)" }}>Descrição</th>
+                      <th style={{ padding: "10px 12px", textAlign: "center", fontSize: 11, fontWeight: 700, color: "#fff", textTransform: "uppercase", letterSpacing: "0.1em", width: 80, borderRight: "1px solid rgba(255,255,255,0.2)" }}>Qtd</th>
+                      <th style={{ padding: "10px 12px", textAlign: "right", fontSize: 11, fontWeight: 700, color: "#fff", textTransform: "uppercase", letterSpacing: "0.1em", width: 110 }}>Valor</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {itens.length === 0
+                      ? <tr><td colSpan={3} style={{ padding: "20px", textAlign: "center", color: "#bbb", fontSize: 13, borderBottom: "1px solid #ddd" }}>Nenhum item adicionado</td></tr>
+                      : itens.map((item, i) => (
+                        <tr key={item.id} style={{ background: i % 2 === 0 ? "#fff" : "#f7f9fc" }}>
+                          <td style={{ padding: "10px 12px", fontSize: 13, color: "#111", borderBottom: "1px solid #e8e8e8", borderRight: "1px solid #e8e8e8" }}>{item.descricao || "—"}</td>
+                          <td style={{ padding: "10px 12px", fontSize: 13, color: "#555", textAlign: "center", borderBottom: "1px solid #e8e8e8", borderRight: "1px solid #e8e8e8" }}>1</td>
+                          <td style={{ padding: "10px 12px", fontSize: 13, fontWeight: 600, color: "#111", textAlign: "right", borderBottom: "1px solid #e8e8e8" }}>{brl(item.valor)}</td>
+                        </tr>
+                      ))
+                    }
+                    {/* Linhas vazias para preencher */}
+                    {Array.from({ length: Math.max(0, 5 - itens.length) }).map((_, i) => (
+                      <tr key={"empty-"+i} style={{ background: i % 2 === 0 ? (itens.length % 2 === 0 ? "#fff" : "#f7f9fc") : (itens.length % 2 === 0 ? "#f7f9fc" : "#fff") }}>
+                        <td style={{ padding: "10px 12px", borderBottom: "1px solid #e8e8e8", borderRight: "1px solid #e8e8e8", height: 36 }}></td>
+                        <td style={{ padding: "10px 12px", borderBottom: "1px solid #e8e8e8", borderRight: "1px solid #e8e8e8" }}></td>
+                        <td style={{ padding: "10px 12px", borderBottom: "1px solid #e8e8e8" }}></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr style={{ background: "#f0f4f8" }}>
+                      <td colSpan={2} style={{ padding: "12px", fontSize: 13, fontWeight: 700, color: "#1a3a5c", textTransform: "uppercase", letterSpacing: "0.08em", borderTop: "2px solid #2d6a9f", borderRight: "1px solid #ddd" }}>Total Geral</td>
+                      <td style={{ padding: "12px", textAlign: "right", borderTop: "2px solid #2d6a9f" }}>
+                        <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: "#1a3a5c", fontWeight: 700 }}>{brl(total)}</span>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+
+                {/* Assinaturas */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40, marginTop: 40 }}>
+                  {[{ label: "Contratante", nome: cliente }, { label: "Prestador de Serviço", nome: pintor.nome }].map(a => (
+                    <div key={a.label} style={{ textAlign: "center" }}>
+                      <div style={{ borderTop: "1px solid #1a3a5c", paddingTop: 8, marginTop: 40 }} />
+                      <div style={{ fontSize: 11, color: "#1a3a5c", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>{a.label}</div>
+                      <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>{a.nome || ""}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Rodapé */}
+                <div style={{ marginTop: 24, paddingTop: 12, borderTop: "1px solid #eee", textAlign: "center", fontSize: 10, color: "#bbb" }}>
+                  Orçamento gerado pelo PintorPRO • pintorpro.vercel.app
                 </div>
 
               </div>
